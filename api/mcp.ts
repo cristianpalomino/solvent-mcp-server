@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const API_URL = process.env.SOLVENT_API_URL || 'https://solvent-api.vercel.app'
+const API_URL = process.env.SOLVENT_API_URL || 'https://solvent-webapp.vercel.app'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-  // Set CORS headers for all requests
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, mcp-session-id')
+    // Set CORS headers for all requests
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, mcp-session-id')
 
     // Handle CORS preflight
     if (req.method === 'OPTIONS') {
@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Create MCP server using shared configuration
-    const server = createMcpServer({
+    const server = await createMcpServer({
       token,
       apiUrl: API_URL,
     })

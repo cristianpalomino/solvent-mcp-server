@@ -271,8 +271,8 @@ async function fetchApiMetadata(
   }
 
   const result = await response.json() as ApiResponse<ApiMetadata>
-  
-  if (!result.success) {
+
+  if (result.success === false) {
     throw new Error(`Failed to fetch API metadata: ${result.error}`)
   }
 
