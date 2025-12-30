@@ -5,6 +5,9 @@
  * Uses stdio transport for local usage with Claude Desktop
  */
 
+// Load environment variables from .env file (for local development)
+import 'dotenv/config'
+
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createMcpServer } from './server.js'
 
@@ -63,8 +66,10 @@ Options:
   --help, -h          Show this help message
 
 Environment Variables:
-  SOLVENT_TOKEN       Alternative to --token
   SOLVENT_API_URL     Alternative to --api-url
+
+  You can also create a .env file in your project root with these variables.
+  Copy .env.example to .env and fill in your values.
 
 Example:
   solvent-mcp --token slvt_abc123... --api-url https://solvent.app

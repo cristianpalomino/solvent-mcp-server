@@ -29,7 +29,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -37,6 +38,10 @@
     "tsx": "^4.7.0",
     "typescript": "^5"
   },
+  "files": [
+    "dist",
+    ".env.example"
+  ],
   "engines": {
     "node": "20.x"
   }
