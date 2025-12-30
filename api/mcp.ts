@@ -198,21 +198,24 @@ function createMcpServer(token: string) {
   return server
 }
 
+// Store active transports by session ID
+const transports = new Map<string, SSEServerTransport>()
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Set CORS headers for all requests
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
     return res.status(200).end()
   }
 
   // Extract token from query parameter OR Authorization header
-  // Claude Connectors use ?token=, while other clients may use Authorization header
   const queryToken = req.query.token as string | undefined
   const authHeader = req.headers.authorization
   const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
-  
   const token = queryToken || headerToken
 
   // Health check for GET without any token
@@ -228,22 +231,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Missing token. Use ?token= query param or Authorization: Bearer header.' })
   }
 
-  const server = createMcpServer(token)
+  // Handle POST requests (messages from client)
+  if (req.method === 'POST') {
+    const sessionId = req.query.sessionId as string
+    const transport = transports.get(sessionId)
+    
+    if (!transport) {
+      return res.status(400).json({ error: 'No active session. Connect via GET first.' })
+    }
 
-  // Set SSE headers
-  res.setHeader('Content-Type', 'text/event-stream')
-  res.setHeader('Cache-Control', 'no-cache')
-  res.setHeader('Connection', 'keep-alive')
-  res.setHeader('Access-Control-Allow-Origin', '*')
+    try {
+      await transport.handlePostMessage(req, res)
+    } catch (error) {
+      console.error('Error handling POST message:', error)
+      return res.status(500).json({ error: 'Failed to handle message' })
+    }
+    return
+  }
 
-  // Create SSE transport
-  const transport = new SSEServerTransport('/api/mcp', res)
-  
-  // Connect server to transport
-  await server.connect(transport)
+  // Handle GET requests (establish SSE connection)
+  if (req.method === 'GET') {
+    const server = createMcpServer(token)
 
-  // Handle client disconnect
-  req.on('close', () => {
-    transport.close()
-  })
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
+
+    // Create SSE transport with message endpoint
+    const transport = new SSEServerTransport('/api/mcp', res)
+    
+    // Store transport for POST message handling
+    const sessionId = crypto.randomUUID()
+    transports.set(sessionId, transport)
+
+    // Clean up on disconnect
+    req.on('close', () => {
+      transports.delete(sessionId)
+      transport.close()
+    })
+
+    // Connect server to transport
+    await server.connect(transport)
+    return
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' })
 }
