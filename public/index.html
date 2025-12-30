@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solvent MCP Server</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e8e8e8;
+    }
+    .container {
+      text-align: center;
+      padding: 3rem;
+      max-width: 600px;
+    }
+    .logo {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .version {
+      color: #666;
+      font-size: 0.875rem;
+      margin-bottom: 2rem;
+    }
+    .description {
+      color: #a0a0a0;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .endpoint {
+      background: rgba(0, 217, 255, 0.1);
+      border: 1px solid rgba(0, 217, 255, 0.3);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .endpoint-label {
+      font-size: 0.75rem;
+      color: #00d9ff;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+    .endpoint-url {
+      font-size: 1rem;
+      color: #00ff88;
+    }
+    .docs-link {
+      display: inline-block;
+      color: #00d9ff;
+      text-decoration: none;
+      border-bottom: 1px dashed #00d9ff;
+      transition: all 0.2s;
+    }
+    .docs-link:hover {
+      color: #00ff88;
+      border-color: #00ff88;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: #00ff88;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">💰</div>
+    <h1>Solvent MCP Server</h1>
+    <div class="version">v1.0.0</div>
+    <p class="description">
+      Model Context Protocol server for Solvent — your personal finance manager. 
+      Connect Claude or other MCP clients to manage expenses, incomes, and track your finances.
+    </p>
+    <div class="endpoint">
+      <div class="endpoint-label">MCP Endpoint</div>
+      <div class="endpoint-url">/api/mcp</div>
+    </div>
+    <div class="status">
+      <span class="status-dot"></span>
+      Server Online
+    </div>
+    <br><br>
+    <a href="https://github.com/cristianpalomino/solvent-mcp-server" class="docs-link">View Documentation →</a>
+  </div>
+</body>
+</html>
+
