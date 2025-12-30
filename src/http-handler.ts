@@ -32,7 +32,8 @@ export async function createSseHandler(
     apiUrl: options.apiUrl,
   }
 
-  const server = createMcpServer(config)
+  // createMcpServer is now async - it fetches metadata on startup
+  const server = await createMcpServer(config)
 
   // Create SSE transport with Node.js HTTP response
   const transport = new SSEServerTransport('/api/mcp', res)
@@ -45,4 +46,3 @@ export async function createSseHandler(
 
 export { createMcpServer } from './server.js'
 export type { McpServerConfig } from './types.js'
-

@@ -1,13 +1,26 @@
 /**
  * Solvent MCP Server
  * 
- * This module exports the main components for running the Solvent MCP server:
- * - createMcpServer: Creates a transport-agnostic MCP server
- * - ApiClient: HTTP client for the Solvent API
- * - Tool definitions and handlers
+ * A dynamic MCP server that automatically discovers and proxies API endpoints
+ * from the Solvent finance API metadata.
+ * 
+ * Usage:
+ *   import { createMcpServer } from 'solvent-mcp'
+ *   
+ *   const server = await createMcpServer({
+ *     apiUrl: 'https://solvent.app',
+ *     token: 'slvt_...',
+ *   })
  */
 
-export { createMcpServer, ApiClient } from './server.js'
-export type { McpServerConfig } from './types.js'
-export { allTools, handleToolCall } from './tools/index.js'
-
+export { createMcpServer } from './server.js'
+export type {
+  McpServerConfig,
+  ApiMetadata,
+  EntityMetadata,
+  EndpointMetadata,
+  FieldSchema,
+  FieldType,
+  HttpMethod,
+  ApiResponse,
+} from './types.js'

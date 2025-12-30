@@ -4,118 +4,935 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solvent MCP Server</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-tertiary: #1a1a24;
+      --accent-cyan: #00d4ff;
+      --accent-green: #00ff9d;
+      --accent-purple: #a855f7;
+      --accent-orange: #ff9500;
+      --text-primary: #f0f0f5;
+      --text-secondary: #8888a0;
+      --text-muted: #555566;
+      --border-color: #2a2a3a;
+      --shadow-glow: 0 0 40px rgba(0, 212, 255, 0.15);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
-      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--bg-primary);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #e8e8e8;
+      color: var(--text-primary);
+      line-height: 1.6;
     }
+
+    code, .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Background Pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(0, 255, 157, 0.03) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
     .container {
-      text-align: center;
-      padding: 3rem;
-      max-width: 600px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
     }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 3rem;
+    }
+
     .logo {
       font-size: 4rem;
       margin-bottom: 1rem;
+      filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
     }
+
     h1 {
-      font-size: 2rem;
-      font-weight: 600;
+      font-size: 2.5rem;
+      font-weight: 700;
       margin-bottom: 0.5rem;
-      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .version {
-      color: #666;
-      font-size: 0.875rem;
-      margin-bottom: 2rem;
-    }
-    .description {
-      color: #a0a0a0;
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-    .endpoint {
-      background: rgba(0, 217, 255, 0.1);
-      border: 1px solid rgba(0, 217, 255, 0.3);
-      border-radius: 8px;
-      padding: 1rem 1.5rem;
+
+    .tagline {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
       margin-bottom: 1.5rem;
     }
-    .endpoint-label {
-      font-size: 0.75rem;
-      color: #00d9ff;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 0.5rem;
-    }
-    .endpoint-url {
-      font-size: 1rem;
-      color: #00ff88;
-    }
-    .docs-link {
-      display: inline-block;
-      color: #00d9ff;
-      text-decoration: none;
-      border-bottom: 1px dashed #00d9ff;
-      transition: all 0.2s;
-    }
-    .docs-link:hover {
-      color: #00ff88;
-      border-color: #00ff88;
-    }
-    .status {
+
+    .status-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(0, 255, 136, 0.1);
-      border: 1px solid rgba(0, 255, 136, 0.3);
-      border-radius: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 100px;
       padding: 0.5rem 1rem;
       font-size: 0.875rem;
-      color: #00ff88;
     }
+
+    .status-badge.online {
+      border-color: rgba(0, 255, 157, 0.3);
+      color: var(--accent-green);
+    }
+
+    .status-badge.offline {
+      border-color: rgba(255, 100, 100, 0.3);
+      color: #ff6464;
+    }
+
+    .status-badge.loading {
+      border-color: rgba(255, 149, 0, 0.3);
+      color: var(--accent-orange);
+    }
+
     .status-dot {
       width: 8px;
       height: 8px;
-      background: #00ff88;
       border-radius: 50%;
-      animation: pulse 2s infinite;
+      background: currentColor;
     }
+
+    .status-badge.online .status-dot {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(0, 212, 255, 0.3);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .card-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Endpoint Card */
+    .endpoint-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      color: var(--accent-cyan);
+      background: var(--bg-tertiary);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .copy-btn.copied {
+      color: var(--accent-green);
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Tools Section */
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Entity Tabs */
+    .entity-tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .entity-tab {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .entity-tab:hover {
+      border-color: var(--accent-cyan);
+      color: var(--text-primary);
+    }
+
+    .entity-tab.active {
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Tools List */
+    .tools-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .tool-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tool-item:hover {
+      border-color: rgba(0, 212, 255, 0.4);
+      background: var(--bg-tertiary);
+    }
+
+    .tool-item.expanded {
+      border-color: var(--accent-cyan);
+    }
+
+    .tool-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .tool-method {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .tool-method.get { background: rgba(0, 212, 255, 0.15); color: var(--accent-cyan); }
+    .tool-method.post { background: rgba(0, 255, 157, 0.15); color: var(--accent-green); }
+    .tool-method.put { background: rgba(255, 149, 0, 0.15); color: var(--accent-orange); }
+    .tool-method.delete { background: rgba(255, 100, 100, 0.15); color: #ff6464; }
+
+    .tool-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .tool-description {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+
+    .tool-expand-icon {
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+
+    .tool-item.expanded .tool-expand-icon {
+      transform: rotate(180deg);
+    }
+
+    .tool-details {
+      display: none;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .tool-item.expanded .tool-details {
+      display: block;
+    }
+
+    .tool-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .params-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .params-list {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .param-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .param-name {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-purple);
+      white-space: nowrap;
+    }
+
+    .param-type {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: var(--bg-primary);
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+    }
+
+    .param-required {
+      font-size: 0.65rem;
+      color: var(--accent-orange);
+      text-transform: uppercase;
+    }
+
+    .param-description {
+      color: var(--text-secondary);
+    }
+
+    /* Config Generator */
+    .config-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .config-input-group {
+      margin-bottom: 1rem;
+    }
+
+    .config-input-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .config-input {
+      width: 100%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+    }
+
+    .config-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+
+    .config-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .config-output {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .config-output pre {
+      margin: 0;
+      color: var(--text-secondary);
+    }
+
+    .config-output .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+
+    /* Syntax Highlighting */
+    .json-key { color: var(--accent-purple); }
+    .json-string { color: var(--accent-green); }
+    .json-bracket { color: var(--text-muted); }
+
+    /* Links */
+    .links {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.2s;
+    }
+
+    .link:hover {
+      color: var(--accent-cyan);
+    }
+
+    /* Loading State */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-message {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="logo">💰</div>
-    <h1>Solvent MCP Server</h1>
-    <div class="version">v1.0.0</div>
-    <p class="description">
-      Model Context Protocol server for Solvent — your personal finance manager. 
-      Connect Claude or other MCP clients to manage expenses, incomes, and track your finances.
-    </p>
-    <div class="endpoint">
-      <div class="endpoint-label">MCP Endpoint</div>
-      <div class="endpoint-url">/api/mcp</div>
+    <header>
+      <div class="logo">💰</div>
+      <h1>Solvent MCP Server</h1>
+      <p class="tagline">Dynamic API proxy for personal finance management via Claude</p>
+      <div class="status-badge loading" id="status-badge">
+        <span class="status-dot"></span>
+        <span id="status-text">Checking...</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔌</span>
+          <span class="card-title">MCP Endpoint</span>
+        </div>
+        <div class="card-label">Connect Claude Desktop or Claude.ai</div>
+        <div class="endpoint-url">
+          <span id="endpoint-url">/api/mcp</span>
+          <button class="copy-btn" onclick="copyToClipboard('/api/mcp', this)" title="Copy">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">API Statistics</span>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value" id="entity-count">-</div>
+            <div class="stat-label">Entities</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="tool-count">-</div>
+            <div class="stat-label">Tools</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="api-version">-</div>
+            <div class="stat-label">Version</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="status">
-      <span class="status-dot"></span>
-      Server Online
+
+    <!-- Tools Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span>🛠️</span>
+          Available Tools
+        </h2>
+      </div>
+      
+      <div class="entity-tabs" id="entity-tabs">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="tools-list" id="tools-list">
+        <div class="loading-message">
+          <div class="loading-spinner"></div>
+          <p style="margin-top: 1rem;">Loading tools from API...</p>
+        </div>
+      </div>
     </div>
-    <br><br>
-    <a href="https://github.com/cristianpalomino/solvent-mcp-server" class="docs-link">View Documentation →</a>
+
+    <!-- Config Generator -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span>⚙️</span>
+          Claude Desktop Config
+        </h2>
+      </div>
+      
+      <div class="config-section">
+        <div class="config-input-group">
+          <label for="token-input">Your API Token</label>
+          <input 
+            type="text" 
+            id="token-input" 
+            class="config-input" 
+            placeholder="slvt_your_token_here"
+            oninput="updateConfig()"
+          >
+        </div>
+        <div class="config-input-group">
+          <label for="url-input">API URL</label>
+          <input 
+            type="text" 
+            id="url-input" 
+            class="config-input" 
+            placeholder="https://solvent.app"
+            oninput="updateConfig()"
+          >
+        </div>
+        <div class="card-label" style="margin-top: 1rem;">Generated Configuration</div>
+        <div class="config-output">
+          <button class="copy-btn" onclick="copyConfig(this)" title="Copy config">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+          <pre id="config-output"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="https://github.com/cristianpalomino/solvent-mcp-server" class="link" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+      <a href="https://modelcontextprotocol.io" class="link" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+        MCP Docs
+      </a>
+      <a href="/api/v1/meta" class="link" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Raw Metadata
+      </a>
+    </div>
   </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    // State
+    let metadata = null;
+    let activeEntity = 'all';
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchMetadata();
+      updateConfig();
+      
+      // Set default URL from current location
+      const urlInput = document.getElementById('url-input');
+      urlInput.value = window.location.origin;
+      updateConfig();
+    });
+
+    // Fetch API metadata
+    async function fetchMetadata() {
+      const statusBadge = document.getElementById('status-badge');
+      const statusText = document.getElementById('status-text');
+      
+      try {
+        const response = await fetch('/api/v1/meta');
+        const result = await response.json();
+        
+        if (result.success) {
+          metadata = result.data;
+          
+          // Update status
+          statusBadge.className = 'status-badge online';
+          statusText.textContent = 'Connected';
+          
+          // Update stats
+          document.getElementById('entity-count').textContent = metadata.entities.length;
+          document.getElementById('tool-count').textContent = metadata.entities.reduce((sum, e) => sum + e.endpoints.length, 0);
+          document.getElementById('api-version').textContent = metadata.version;
+          
+          // Render UI
+          renderEntityTabs();
+          renderTools();
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        statusBadge.className = 'status-badge offline';
+        statusText.textContent = 'Disconnected';
+        
+        document.getElementById('tools-list').innerHTML = `
+          <div class="empty-state">
+            <p>⚠️ Could not connect to API</p>
+            <p style="font-size: 0.8rem; margin-top: 0.5rem;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render entity tabs
+    function renderEntityTabs() {
+      const container = document.getElementById('entity-tabs');
+      
+      const tabs = [
+        { id: 'all', label: 'All' },
+        ...metadata.entities.map(e => ({ id: e.name, label: capitalize(e.name) }))
+      ];
+      
+      container.innerHTML = tabs.map(tab => `
+        <button 
+          class="entity-tab ${tab.id === activeEntity ? 'active' : ''}"
+          onclick="setActiveEntity('${tab.id}')"
+        >
+          ${tab.label}
+        </button>
+      `).join('');
+    }
+
+    // Set active entity
+    function setActiveEntity(entity) {
+      activeEntity = entity;
+      renderEntityTabs();
+      renderTools();
+    }
+
+    // Render tools list
+    function renderTools() {
+      const container = document.getElementById('tools-list');
+      
+      let endpoints = [];
+      if (activeEntity === 'all') {
+        endpoints = metadata.entities.flatMap(e => 
+          e.endpoints.map(ep => ({ ...ep, entityName: e.name, singularName: e.singularName }))
+        );
+      } else {
+        const entity = metadata.entities.find(e => e.name === activeEntity);
+        if (entity) {
+          endpoints = entity.endpoints.map(ep => ({ ...ep, entityName: entity.name, singularName: entity.singularName }));
+        }
+      }
+      
+      if (endpoints.length === 0) {
+        container.innerHTML = '<div class="empty-state">No tools found</div>';
+        return;
+      }
+      
+      container.innerHTML = endpoints.map((ep, i) => {
+        const toolName = generateToolName(ep);
+        const params = [...(ep.pathParams || []), ...(ep.queryParams || []), ...(ep.bodySchema || [])];
+        
+        return `
+          <div class="tool-item" onclick="toggleTool(this)">
+            <div class="tool-header">
+              <span class="tool-method ${ep.method.toLowerCase()}">${ep.method}</span>
+              <span class="tool-name">${toolName}</span>
+              <span class="tool-description">${ep.description}</span>
+              <svg class="tool-expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+            <div class="tool-details">
+              <div class="tool-path">${ep.path}</div>
+              ${params.length > 0 ? `
+                <div class="params-title">Parameters</div>
+                <div class="params-list">
+                  ${params.map(p => `
+                    <div class="param-item">
+                      <span class="param-name">${p.name}</span>
+                      <span class="param-type">${p.type}</span>
+                      ${p.required ? '<span class="param-required">required</span>' : ''}
+                      <span class="param-description">${p.description || ''}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : '<p style="color: var(--text-muted); font-size: 0.8rem;">No parameters</p>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Toggle tool expansion
+    function toggleTool(el) {
+      el.classList.toggle('expanded');
+    }
+
+    // Generate tool name from endpoint
+    function generateToolName(endpoint) {
+      const hasIdParam = endpoint.path.includes(':id');
+      const entityName = endpoint.entityName;
+      const singularName = endpoint.singularName;
+      
+      switch (endpoint.method) {
+        case 'GET': return hasIdParam ? `get_${singularName}` : `list_${entityName}`;
+        case 'POST': return `create_${singularName}`;
+        case 'PUT': return `update_${singularName}`;
+        case 'DELETE': return `delete_${singularName}`;
+        default: return `${endpoint.method.toLowerCase()}_${entityName}`;
+      }
+    }
+
+    // Update config output
+    function updateConfig() {
+      const token = document.getElementById('token-input').value || 'slvt_your_token_here';
+      const apiUrl = document.getElementById('url-input').value || 'https://solvent.app';
+      
+      const config = {
+        mcpServers: {
+          solvent: {
+            command: 'npx',
+            args: ['solvent-mcp', '--token', token],
+            env: {
+              SOLVENT_API_URL: apiUrl
+            }
+          }
+        }
+      };
+      
+      const json = JSON.stringify(config, null, 2);
+      const highlighted = json
+        .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+        .replace(/: "([^"]+)"/g, ': <span class="json-string">"$1"</span>')
+        .replace(/[\[\]{}]/g, '<span class="json-bracket">$&</span>');
+      
+      document.getElementById('config-output').innerHTML = highlighted;
+    }
+
+    // Copy to clipboard
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        showToast('Copied to clipboard!');
+        setTimeout(() => btn.classList.remove('copied'), 2000);
+      });
+    }
+
+    // Copy config
+    function copyConfig(btn) {
+      const token = document.getElementById('token-input').value || 'slvt_your_token_here';
+      const apiUrl = document.getElementById('url-input').value || 'https://solvent.app';
+      
+      const config = {
+        mcpServers: {
+          solvent: {
+            command: 'npx',
+            args: ['solvent-mcp', '--token', token],
+            env: {
+              SOLVENT_API_URL: apiUrl
+            }
+          }
+        }
+      };
+      
+      copyToClipboard(JSON.stringify(config, null, 2), btn);
+    }
+
+    // Show toast notification
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Capitalize helper
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+  </script>
 </body>
 </html>
-

@@ -1,6 +1,16 @@
 # Solvent MCP Server
 
-MCP (Model Context Protocol) server for Solvent - Personal Finance Manager. This allows Claude to interact with your Solvent data through natural language.
+A dynamic MCP (Model Context Protocol) server for Solvent - Personal Finance Manager. This allows Claude to interact with your Solvent data through natural language.
+
+## Architecture
+
+This MCP server uses **dynamic tool discovery**:
+
+1. On startup, fetches API metadata from `GET {SOLVENT_API_URL}/api/v1/meta`
+2. Dynamically generates MCP tools from the metadata
+3. When tools are called, proxies requests to the actual API endpoints
+
+This means the tools are always in sync with the API—no manual updates needed when the API changes.
 
 ## Features
 
@@ -8,6 +18,7 @@ MCP (Model Context Protocol) server for Solvent - Personal Finance Manager. This
 - **Incomes**: List, create, update, and delete incomes
 - **Categories**: List, create, update, and delete categories
 - **Recurring Transactions**: List, create, update, and delete recurring transactions
+- **Receipts**: List, create, update, and delete receipts
 
 ## Setup
 
@@ -66,17 +77,37 @@ Add the following configuration:
   "mcpServers": {
     "solvent": {
       "command": "npx",
-      "args": [
-        "solvent-mcp",
-        "--token", "slvt_your_token_here",
-        "--api-url", "https://your-solvent-domain.com"
-      ]
+      "args": ["solvent-mcp", "--token", "slvt_your_token_here"],
+      "env": {
+        "SOLVENT_API_URL": "https://your-solvent-domain.com"
+      }
     }
   }
 }
 ```
 
 4. Restart Claude Desktop
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SOLVENT_API_URL` | Base URL of the Solvent API | `http://localhost:3000` |
+| `SOLVENT_API_TOKEN` | Your API token (starts with `slvt_`) | Required |
+
+### Command Line Arguments
+
+```bash
+solvent-mcp --token <token> [--api-url <url>]
+```
+
+| Argument | Description |
+|----------|-------------|
+| `--token <token>` | Your Solvent API token (required) |
+| `--api-url <url>` | The Solvent API URL (optional) |
+| `--help, -h` | Show help message |
 
 ## Usage Examples
 
@@ -88,47 +119,27 @@ Once connected, you can ask Claude things like:
 - "What are my recurring expenses?"
 - "Create a monthly recurring expense of $15 for Netflix"
 
-## Available Tools
+## Generated Tools
 
-### Expenses
+Tools are automatically generated based on the API metadata. The naming convention is:
 
-| Tool | Description |
-|------|-------------|
-| `list_expenses` | List all expenses (optionally with category info) |
-| `get_expense` | Get a single expense by ID |
-| `create_expense` | Create a new expense |
-| `update_expense` | Update an existing expense |
-| `delete_expense` | Delete an expense |
+| Pattern | Tool Name | Description |
+|---------|-----------|-------------|
+| `GET /api/v1/{entity}` | `list_{entity}` | List all items |
+| `GET /api/v1/{entity}/:id` | `get_{singular}` | Get a single item by ID |
+| `POST /api/v1/{entity}` | `create_{singular}` | Create a new item |
+| `PUT /api/v1/{entity}/:id` | `update_{singular}` | Update an existing item |
+| `DELETE /api/v1/{entity}/:id` | `delete_{singular}` | Delete an item |
 
-### Incomes
+### Expected Tools (25 total)
 
-| Tool | Description |
-|------|-------------|
-| `list_incomes` | List all incomes (optionally with category info) |
-| `get_income` | Get a single income by ID |
-| `create_income` | Create a new income |
-| `update_income` | Update an existing income |
-| `delete_income` | Delete an income |
-
-### Categories
-
-| Tool | Description |
-|------|-------------|
-| `list_categories` | List all categories (with optional filters) |
-| `get_category` | Get a single category by ID |
-| `create_category` | Create a new category |
-| `update_category` | Update an existing category |
-| `delete_category` | Delete a category |
-
-### Recurring Transactions
-
-| Tool | Description |
-|------|-------------|
-| `list_recurrings` | List all recurring transactions |
-| `get_recurring` | Get a single recurring transaction by ID |
-| `create_recurring` | Create a new recurring transaction |
-| `update_recurring` | Update an existing recurring transaction |
-| `delete_recurring` | Delete a recurring transaction |
+| Entity | Tools |
+|--------|-------|
+| Expenses | `list_expenses`, `get_expense`, `create_expense`, `update_expense`, `delete_expense` |
+| Incomes | `list_incomes`, `get_income`, `create_income`, `update_income`, `delete_income` |
+| Categories | `list_categories`, `get_category`, `create_category`, `update_category`, `delete_category` |
+| Recurrings | `list_recurrings`, `get_recurring`, `create_recurring`, `update_recurring`, `delete_recurring` |
+| Receipts | `list_receipts`, `get_receipt`, `create_receipt`, `update_receipt`, `delete_receipt` |
 
 ## Permissions
 
@@ -144,13 +155,14 @@ When creating an MCP token, you can control which operations Claude can perform:
 | Categories: Write | Create, update, delete categories |
 | Recurrings: Read | List and view recurring transactions |
 | Recurrings: Write | Create, update, delete recurring transactions |
+| Receipts: Read | List and view receipts |
+| Receipts: Write | Create, update, delete receipts |
 
 ## Development
 
 ### Building from Source
 
 ```bash
-cd mcp-server
 npm install
 npm run build
 ```
@@ -159,6 +171,17 @@ npm run build
 
 ```bash
 npm run dev -- --token slvt_xxx --api-url http://localhost:3000
+```
+
+### Project Structure
+
+```
+src/
+├── cli.ts          # CLI entry point (stdio transport)
+├── server.ts       # Dynamic MCP server (tool discovery & proxying)
+├── http-handler.ts # HTTP/SSE handler for remote MCP
+├── types.ts        # TypeScript types for API metadata
+└── index.ts        # Package exports
 ```
 
 ## Security Notes
@@ -178,6 +201,13 @@ Make sure you selected **MCP** as the token type when creating the token. API to
 
 Your token may have been revoked. Create a new MCP token in Settings.
 
+### "Failed to fetch API metadata"
+
+The server couldn't connect to the Solvent API. Check:
+1. The `SOLVENT_API_URL` is correct
+2. The API server is running
+3. Your network can reach the API
+
 ### Connection issues with Claude Desktop
 
 1. Make sure Node.js is installed: `node --version`
@@ -188,4 +218,3 @@ Your token may have been revoked. Create a new MCP token in Settings.
 ## License
 
 MIT
-
