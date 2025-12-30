@@ -1,15 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/mcp",
-      "dest": "/api/mcp"
-    }
-  ]
+  "installCommand": "npm install",
+  "buildCommand": "npm run build"
 }
