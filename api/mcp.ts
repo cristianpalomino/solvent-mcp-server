@@ -34,7 +34,7 @@ class ApiClient {
       throw new Error(`API Error ${response.status}: ${error}`)
     }
 
-    return response.json()
+    return response.json() as Promise<T>
   }
 
   async get<T>(endpoint: string): Promise<T> {
