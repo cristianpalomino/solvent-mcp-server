@@ -1,0 +1,43 @@
+{
+  "name": "solvent-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Solvent - Personal Finance Manager",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "solvent-mcp": "./dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./http": "./dist/http-handler.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "anthropic",
+    "solvent",
+    "finance"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.7.0",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+
