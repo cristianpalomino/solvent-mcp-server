@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -198,14 +198,11 @@ function createMcpServer(token: string) {
   return server
 }
 
-// Store active transports by session ID
-const transports = new Map<string, SSEServerTransport>()
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set CORS headers for all requests
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, mcp-session-id')
 
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -218,8 +215,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
   const token = queryToken || headerToken
 
-  // Health check for GET without any token
-  if (req.method === 'GET' && !token) {
+  // Health check for GET without any token (and not an MCP request)
+  if (req.method === 'GET' && !token && !req.headers.accept?.includes('text/event-stream')) {
     return res.status(200).json({ 
       status: 'ok', 
       service: 'solvent-mcp-server',
@@ -231,50 +228,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Missing token. Use ?token= query param or Authorization: Bearer header.' })
   }
 
-  // Handle POST requests (messages from client)
-  if (req.method === 'POST') {
-    const sessionId = req.query.sessionId as string
-    const transport = transports.get(sessionId)
-    
-    if (!transport) {
-      return res.status(400).json({ error: 'No active session. Connect via GET first.' })
+  // Create MCP server and transport
+  const server = createMcpServer(token)
+  
+  // Use stateless mode for serverless compatibility
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined, // Stateless mode
+  })
+
+  // Connect server to transport
+  await server.connect(transport)
+
+  // Handle the request
+  try {
+    await transport.handleRequest(req, res, req.body)
+  } catch (error) {
+    console.error('MCP request error:', error)
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error' })
     }
-
-    try {
-      await transport.handlePostMessage(req, res)
-    } catch (error) {
-      console.error('Error handling POST message:', error)
-      return res.status(500).json({ error: 'Failed to handle message' })
-    }
-    return
   }
-
-  // Handle GET requests (establish SSE connection)
-  if (req.method === 'GET') {
-    const server = createMcpServer(token)
-
-    // Set SSE headers
-    res.setHeader('Content-Type', 'text/event-stream')
-    res.setHeader('Cache-Control', 'no-cache')
-    res.setHeader('Connection', 'keep-alive')
-
-    // Create SSE transport with message endpoint
-    const transport = new SSEServerTransport('/api/mcp', res)
-    
-    // Store transport for POST message handling
-    const sessionId = crypto.randomUUID()
-    transports.set(sessionId, transport)
-
-    // Clean up on disconnect
-    req.on('close', () => {
-      transports.delete(sessionId)
-      transport.close()
-    })
-
-    // Connect server to transport
-    await server.connect(transport)
-    return
-  }
-
-  return res.status(405).json({ error: 'Method not allowed' })
 }
