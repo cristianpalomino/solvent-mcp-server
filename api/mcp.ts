@@ -207,22 +207,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end()
   }
 
-  // Health check for GET without auth
-  if (req.method === 'GET' && !req.headers.authorization) {
+  // Extract token from query parameter OR Authorization header
+  // Claude Connectors use ?token=, while other clients may use Authorization header
+  const queryToken = req.query.token as string | undefined
+  const authHeader = req.headers.authorization
+  const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined
+  
+  const token = queryToken || headerToken
+
+  // Health check for GET without any token
+  if (req.method === 'GET' && !token) {
     return res.status(200).json({ 
       status: 'ok', 
       service: 'solvent-mcp-server',
-      message: 'MCP server is running. Use Authorization header with Bearer token to connect.'
+      message: 'MCP server is running. Pass token via ?token= query param or Authorization: Bearer header.'
     })
   }
 
-  // Extract token from Authorization header
-  const authHeader = req.headers.authorization
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or invalid Authorization header' })
+  if (!token) {
+    return res.status(401).json({ error: 'Missing token. Use ?token= query param or Authorization: Bearer header.' })
   }
 
-  const token = authHeader.slice(7)
   const server = createMcpServer(token)
 
   // Set SSE headers
