@@ -1,4 +1,10 @@
 {
-  "version": 2,
-  "outputDirectory": "public"
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "public",
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "dist/**"
+    }
+  }
 }

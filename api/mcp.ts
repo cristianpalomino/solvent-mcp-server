@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { createMcpServer } from '../src/server.js'
+import { createMcpServer } from '../dist/server.js'
 
 const API_URL = process.env.SOLVENT_API_URL || 'https://solvent-api.vercel.app'
 
