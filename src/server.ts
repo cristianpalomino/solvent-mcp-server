@@ -22,12 +22,13 @@ import type {
 
 /**
  * Generate a tool name from endpoint metadata
- * 
+ *
  * Examples:
  * - GET /api/v1/expenses → list_expenses
  * - GET /api/v1/expenses/:id → get_expense
  * - POST /api/v1/expenses → create_expense
  * - PUT /api/v1/expenses/:id → update_expense
+ * - PATCH /api/v1/expenses/:id → patch_expense
  * - DELETE /api/v1/expenses/:id → delete_expense
  */
 function generateToolName(
@@ -36,7 +37,7 @@ function generateToolName(
   singularName: string
 ): string {
   const hasIdParam = endpoint.path.includes(':id')
-  
+
   switch (endpoint.method) {
     case 'GET':
       return hasIdParam ? `get_${singularName}` : `list_${entityName}`
@@ -44,6 +45,8 @@ function generateToolName(
       return `create_${singularName}`
     case 'PUT':
       return `update_${singularName}`
+    case 'PATCH':
+      return `patch_${singularName}`
     case 'DELETE':
       return `delete_${singularName}`
   }
@@ -205,7 +208,7 @@ function buildBody(
   endpoint: EndpointMetadata,
   args: Record<string, unknown>
 ): Record<string, unknown> | undefined {
-  if (endpoint.method !== 'POST' && endpoint.method !== 'PUT') {
+  if (endpoint.method !== 'POST' && endpoint.method !== 'PUT' && endpoint.method !== 'PATCH') {
     return undefined
   }
 

@@ -17,7 +17,7 @@ export type FieldSchema = {
 
 // ==================== Endpoint Metadata Types ====================
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export type Permission = {
   entity: string
